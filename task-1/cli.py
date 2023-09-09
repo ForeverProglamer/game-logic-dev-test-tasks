@@ -18,7 +18,7 @@ def main() -> None:
 
 def run_picture_shifting() -> None:
     raw_frame_size = input('Enter frame size (ex. 4x4): ')
-    rows, cols = parse_pair_of_ints(raw_frame_size, 'x')
+    cols, rows = parse_pair_of_ints(raw_frame_size, 'x')
 
     frame = [[] for _ in range(rows)]
 
