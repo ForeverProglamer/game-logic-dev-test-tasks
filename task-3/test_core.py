@@ -1,7 +1,8 @@
-from typing import TypedDict
+from itertools import chain
 from unittest import TestCase
 
 from core import (
+    _LazyQueue,
     Treasury,
     find_all_paths_to_open_all_chests,
     find_one_path_to_open_all_chests
@@ -46,9 +47,9 @@ class TestOpenAllChests(TestCase):
         results_iter = iter(expected_results)
         for index, treasury in enumerate(self.treasuries, 0):
             expected = next(results_iter)
-            with self.subTest(msh=f'Test {index}', treasury=treasury):
+            with self.subTest(msg=f'Test {index}', treasury=treasury):
                 self.assertListEqual(
-                    find_all_paths_to_open_all_chests(**treasury),
+                    list(find_all_paths_to_open_all_chests(**treasury)),
                     expected
                 )
 
@@ -62,8 +63,62 @@ class TestOpenAllChests(TestCase):
         results_iter = iter(expected_results)
         for index, treasury in enumerate(self.treasuries, 0):
             expected = next(results_iter)
-            with self.subTest(msh=f'Test {index}', treasury=treasury):
+            with self.subTest(msg=f'Test {index}', treasury=treasury):
                 self.assertListEqual(
                     find_one_path_to_open_all_chests(**treasury),
                     expected
                 )
+
+
+class TestLazyQueue(TestCase):
+    def _to_gen(self, items):
+        for item in items:
+            yield item
+
+    def test_popleft_raises_index_error_if_deque_is_empty(self):
+        queue = _LazyQueue()
+        with self.assertRaises(IndexError, msg='pop from an empty deque'):
+            queue.popleft()
+
+    def test_popleft_raises_index_error_if_empty_generator_passed(self):
+        queue = _LazyQueue((0 for _ in range(0)))
+        with self.assertRaises(IndexError, msg='pop from an empty lazy deque'):
+            queue.popleft()
+
+    def test_popleft_works_correctly_with_initialized_data(self):
+        data = list(range(1, 11))
+        queue = _LazyQueue(self._to_gen(data))
+
+        for expected in data:
+            self.assertEqual(queue.popleft(), expected)
+
+    def test_append_works_correctly(self):
+        gen = (i for i in range(1, 11))
+        gen2 = (i for i in range(20, 31))
+        queue = _LazyQueue()
+
+        queue.append(gen)
+        queue.append(gen2)
+
+        self.assertListEqual(list(queue._deque), [gen, gen2])
+
+    def test_complex_usage_1(self):
+        lst = list(range(1, 11))
+        lst2 = list(range(20, 31))
+
+        queue = _LazyQueue(self._to_gen(lst))
+        queue.append(self._to_gen(lst2))
+
+        for expected in chain(lst, lst2):
+            self.assertEqual(queue.popleft(), expected)
+
+    def test_complex_usage_2(self):
+        lst = list(range(1, 11))
+        lst2 = list(range(20, 31))
+
+        queue = _LazyQueue()
+        queue.append(self._to_gen(lst))
+        queue.append(self._to_gen(lst2))
+
+        for expected in chain(lst, lst2):
+            self.assertEqual(queue.popleft(), expected)
