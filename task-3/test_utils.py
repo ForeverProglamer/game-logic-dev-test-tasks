@@ -1,10 +1,8 @@
-from pathlib import Path
 from unittest import TestCase
 
 from core import Treasury
+from main import SMALL_INPUT_FILE
 from utils import TreasuryReader
-
-SMALL_INPUT_FILE = Path('Treasure_1_Small.in')
 
 CASES: list[Treasury] = [
     {
