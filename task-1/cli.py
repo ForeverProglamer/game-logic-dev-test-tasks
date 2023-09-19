@@ -1,6 +1,10 @@
 import sys
+from random import randint
 
 from core import shift_picture_to_frame_start
+
+MIN_VALUE_TO_GENERATE = 0
+MAX_VALUE_TO_GENERATE = 101
 
 
 def main() -> None:
@@ -17,22 +21,18 @@ def main() -> None:
 
 
 def run_picture_shifting() -> None:
-    raw_frame_size = input('Enter frame size (ex. 4x4): ')
+    raw_frame_size = input('Enter frame size (e.g. 4x4): ')
     cols, rows = parse_pair_of_ints(raw_frame_size, 'x')
 
-    frame = [[] for _ in range(rows)]
+    frame = generate_random_frame(cols, rows)
 
-    for i in range(rows):
-        for j in range(cols):
-            frame[i].append(int(input(f'Enter frame[{i}][{j}]: ')))
-
-    print('Given frame:')
+    print('Generated frame:')
     print_2d_array(frame)
 
-    raw_picture_size = input('Enter picture size (ex. 2x2): ')
+    raw_picture_size = input('Enter picture size (e.g. 2x2): ')
     pic_width, pic_height = parse_pair_of_ints(raw_picture_size, 'x')
 
-    raw_picture_coords = input('Enter picture start coordinates (ex. 1,1): ')
+    raw_picture_coords = input('Enter picture start coordinates (e.g. 1,1): ')
     pic_x, pic_y = parse_pair_of_ints(raw_picture_coords, ',')
 
     shift_picture_to_frame_start(
@@ -48,10 +48,23 @@ def parse_pair_of_ints(raw_size: str, separator: str) -> tuple[int, int]:
     return int(x), int(y)
 
 
+def generate_random_frame(cols: int, rows: int) -> list[list[int]]:
+    result = []
+    for _ in range(rows):
+        result.append([
+            randint(MIN_VALUE_TO_GENERATE, MAX_VALUE_TO_GENERATE)
+            for _ in range(cols)
+        ])
+    return result
+
+
 def print_2d_array(array: list[list[int]]) -> None:
     for i in range(len(array)):
         for j in range(len(array[i])):
-            print(array[i][j], end=' ')
+            print(
+                f'{array[i][j]:{len(str(MAX_VALUE_TO_GENERATE))+1}}',
+                end=' '
+            )
         print()
 
 
